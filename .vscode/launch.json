@@ -1,0 +1,49 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "CUDA: Instant Compile & Debug (T4)",
+            "type": "cuda-gdb",
+            "request": "launch",
+            "program": "${workspaceFolder}/app",
+            "preLaunchTask": "CUDA: Build (Debug, T4)",
+            "breakOnLaunch": false,
+            "onAPIError": "stop",
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Debug sample",
+            "type": "cuda-gdb",
+            "request": "launch",
+            "program": "${workspaceFolder}/sample",
+            "args": [],
+            "breakOnLaunch": false,
+            "onAPIError": "stop",
+            "debuggerPath": "/usr/local/cuda/bin/cuda-gdb"
+        },
+        {
+            "name": "Debug illegal access",
+            "type": "cuda-gdb",
+            "request": "launch",
+            "program": "${workspaceFolder}/illegal_access",
+            "args": [],
+            "breakOnLaunch": false,
+            "onAPIError": "stop",
+            "debuggerPath": "/usr/local/cuda/bin/cuda-gdb"
+        },
+        {
+            "name": "CUDA C++: Launch",
+            "type": "cuda-gdb",
+            "request": "launch",
+            "program": ""
+        },
+        {
+            "name": "CUDA C++: Attach",
+            "type": "cuda-gdb",
+            "request": "attach"
+        }
+    ]
+}
