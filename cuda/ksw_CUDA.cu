@@ -1,6 +1,10 @@
 #include "ksw_CUDA.cuh"
 #include "CUDAKernel_memmgnt.cuh"
 
+#if defined(SEQ_MAXLEN) && (KSW_MAX_QLEN < SEQ_MAXLEN)
+#error "KSW_MAX_QLEN must be >= SEQ_MAXLEN"
+#endif
+
 __device__ const kswr_t g_defr = { 0, -1, -1, -1, -1, -1, -1 };
 
 /**

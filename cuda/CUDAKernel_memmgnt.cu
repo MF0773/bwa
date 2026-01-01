@@ -9,6 +9,10 @@ typedef struct
 	unsigned end_offset;		// the max offset of the chunk
 } CUDAKernel_mem_info;
 
+static __device__ __forceinline__ unsigned cudaAlignUp(unsigned value, unsigned align){
+	return (value + align - 1) & ~(align - 1);
+}
+
 __host__ void* CUDA_BufferInit(){
 	/*
 	Allocate NBUFFERPOOLS Buffer pools, each with size POOLSIZE
@@ -74,11 +78,9 @@ __device__ void* CUDAKernelMalloc(void* d_buffer_pool, size_t size, uint8_t alig
 
 	// enforce memory alignment
 		// size pointer need to be divisible by 4
-	if (offset%4)
-		offset += 4 - (offset%4);
+	offset = cudaAlignUp(offset, 4);
 		// out pointer need to be divisible by align_size
-	if ((offset+4)%align_size)
-		offset += align_size - (offset+4)%align_size;
+	offset = cudaAlignUp(offset + 4, align_size) - 4;
 
 	// check if we passed the end pointer
 	if (offset > d_pool_info->end_offset){

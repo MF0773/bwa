@@ -1,10 +1,11 @@
 #include "stdint.h"
+#include "batch_config.h"
 
 #define KSW_XBYTE  0x10000
 #define KSW_XSTOP  0x20000
 #define KSW_XSUBO  0x40000
 #define KSW_XSTART 0x80000
-#define KSW_MAX_QLEN 500
+#define KSW_MAX_QLEN SEQ_MAXLEN
 #define WARPSIZE 32
 
 typedef	struct m128i {
