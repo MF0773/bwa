@@ -539,9 +539,9 @@ __device__ int ksw_global_warp(int qlen, const uint8_t *query, int tlen, const u
 	// finished filling the matrix, now we find the max of max_score across the warp
 	// use reduction to find the max of 32 max's
 	for (int i=0; i<5; i++){
-		int tmp = __shfl_down_sync(ALL_THREADS, max_score, 1<<i);
-		int tmp_i = __shfl_down_sync(ALL_THREADS, i_m, 1<<i);
-		int tmp_j = __shfl_down_sync(ALL_THREADS, j_m, 1<<i);
+		int tmp = __shfl_down_sync(KSW_ALL_THREADS, max_score, 1<<i);
+		int tmp_i = __shfl_down_sync(KSW_ALL_THREADS, i_m, 1<<i);
+		int tmp_j = __shfl_down_sync(KSW_ALL_THREADS, j_m, 1<<i);
 		if (max_score < tmp) {max_score = tmp; i_m = tmp_i; j_m = tmp_j;}
 	}
 

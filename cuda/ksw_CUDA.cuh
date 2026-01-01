@@ -1,6 +1,7 @@
 #include "stdint.h"
 #include "batch_config.h"
 #include <math.h>
+#include <stdio.h>
 
 #define KSW_XBYTE  0x10000
 #define KSW_XSTOP  0x20000
