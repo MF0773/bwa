@@ -1,6 +1,7 @@
 #include "streams.cuh"
 #include "errHandler.cuh"
 #include "CUDAKernel_memmgnt.cuh"
+#include "ksw_CUDA.cuh"
 #include "batch_config.h"
 
 
@@ -113,6 +114,7 @@ static void transferOptions(
 	mem_opt_t* d_opt;
 	cudaMalloc((void**)&d_opt, sizeof(mem_opt_t));
 	cudaMemcpy(d_opt, opt, sizeof(mem_opt_t), cudaMemcpyHostToDevice);
+	gpuErrchk(cudaMemcpyToSymbol(d_ksw_mat, opt->mat, sizeof(opt->mat)));
 
 	// paired-end stats: only allocate on device
 	mem_pestat_t* d_pes;
