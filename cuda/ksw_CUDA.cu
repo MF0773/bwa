@@ -405,11 +405,7 @@ __device__ int ksw_extend2(int qlen, const uint8_t *query, int tlen, const uint8
 
 /* scoring of 2 characters given scoring matrix mat, and dimension m*/
 __device__ static inline int score(uint8_t A, uint8_t B, const int8_t *mat, int m){
-#if __CUDA_ARCH__ >= 350
-	return (int)__ldg(&mat[A*m+B]);
-#else
 	return (int)mat[A*m+B];
-#endif
 }
 /* SW extension executing at warp level
 	BLOCKSIZE = WARPSIZE = 32
