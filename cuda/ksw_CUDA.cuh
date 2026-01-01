@@ -68,6 +68,9 @@ static __device__ __forceinline__ int ksw_score(uint8_t A, uint8_t B, const int8
 static __device__ __forceinline__ int ksw_extend_warp(int qlen, const uint8_t *query, int tlen, const uint8_t *target, int m, const int8_t *mat, int o_del, int e_del, int o_ins, int e_ins, int h0, int *_qle, int *_tle, int *_gtle, int *_gscore)
 {
 	if (qlen>KSW_MAX_QLEN){printf("querry length is too long %d \n", qlen); __trap();}
+	__shared__ int8_t S_mat[25];
+	if (threadIdx.x < 25) S_mat[threadIdx.x] = mat[threadIdx.x];
+	__syncwarp(KSW_ALL_THREADS);
 	__shared__	int16_t SM_H[KSW_MAX_QLEN], SM_E[KSW_MAX_QLEN];
 	int e, f, h;
 	int e1_;
@@ -102,7 +105,7 @@ static __device__ __forceinline__ int ksw_extend_warp(int qlen, const uint8_t *q
 		if (i<tlen && j<qlen && j>=0){ 		// safety check for small matrix
 			e = KSW_MAX2(h1_-o_del-e_del, e1_-e_del);
 			f = KSW_MAX2(h_1-o_ins-e_ins, f-e_ins);
-			h = h11 + ksw_score(target[i], query[j], mat, m);
+			h = h11 + ksw_score(target[i], query[j], S_mat, m);
 			h = KSW_MAX2(0, h);
 			int tmp = KSW_MAX2(e,f);
 			h = KSW_MAX2(tmp, h);
@@ -145,7 +148,7 @@ static __device__ __forceinline__ int ksw_extend_warp(int qlen, const uint8_t *q
 			if (i<tlen && j<qlen){ // j should be >=0
 				e = KSW_MAX2(h1_-o_del-e_del, e1_-e_del);
 				f = KSW_MAX2(h_1-o_ins-e_ins, f-e_ins);
-				h = h11 + ksw_score(target[i], query[j], mat, m);
+				h = h11 + ksw_score(target[i], query[j], S_mat, m);
 				h = KSW_MAX2(0, h);
 				int tmp = KSW_MAX2(e,f);
 				h = KSW_MAX2(tmp, h);
