@@ -108,7 +108,7 @@ static __device__ __forceinline__ int ksw_extend_warp(int qlen, const uint8_t *q
 		if (i<tlen && j<qlen && j>=0){ 		// safety check for small matrix
 			e = KSW_MAX2(h1_-o_del-e_del, e1_-e_del);
 			f = KSW_MAX2(h_1-o_ins-e_ins, f-e_ins);
-			h = h11 + ksw_score(target[i], query[j], S_mat, m);
+			h = h11 + (int)S_mat[target[i]*m + query[j]];
 			h = KSW_MAX2(0, h);
 			int tmp = KSW_MAX2(e,f);
 			h = KSW_MAX2(tmp, h);
@@ -151,7 +151,7 @@ static __device__ __forceinline__ int ksw_extend_warp(int qlen, const uint8_t *q
 			if (i<tlen && j<qlen){ // j should be >=0
 				e = KSW_MAX2(h1_-o_del-e_del, e1_-e_del);
 				f = KSW_MAX2(h_1-o_ins-e_ins, f-e_ins);
-				h = h11 + ksw_score(target[i], query[j], S_mat, m);
+				h = h11 + (int)S_mat[target[i]*m + query[j]];
 				h = KSW_MAX2(0, h);
 				int tmp = KSW_MAX2(e,f);
 				h = KSW_MAX2(tmp, h);
