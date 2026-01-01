@@ -47,9 +47,7 @@ __device__ int ksw_global2(int qlen, const uint8_t *query, int tlen, const uint8
 
 /* scoring of 2 characters given scoring matrix mat, and dimension m */
 static __device__ __forceinline__ int ksw_score(uint8_t A, uint8_t B, const int8_t *mat, int m){
-	uint8_t a = A < m ? A : (uint8_t)(m - 1);
-	uint8_t b = B < m ? B : (uint8_t)(m - 1);
-	return (int)mat[a*m+b];
+	return (int)mat[A*m+B];
 }
 
 /* SW extension executing at warp level
@@ -110,9 +108,7 @@ static __device__ __forceinline__ int ksw_extend_warp(int qlen, const uint8_t *q
 		if (i<tlen && j<qlen && j>=0){ 		// safety check for small matrix
 			e = KSW_MAX2(h1_-o_del-e_del, e1_-e_del);
 			f = KSW_MAX2(h_1-o_ins-e_ins, f-e_ins);
-			uint8_t a = target[i] < m ? target[i] : (uint8_t)(m - 1);
-			uint8_t b = query[j] < m ? query[j] : (uint8_t)(m - 1);
-			h = h11 + (int)S_mat[a*m + b];
+			h = h11 + (int)S_mat[target[i]*m + query[j]];
 			h = KSW_MAX2(0, h);
 			int tmp = KSW_MAX2(e,f);
 			h = KSW_MAX2(tmp, h);
@@ -155,9 +151,7 @@ static __device__ __forceinline__ int ksw_extend_warp(int qlen, const uint8_t *q
 			if (i<tlen && j<qlen){ // j should be >=0
 				e = KSW_MAX2(h1_-o_del-e_del, e1_-e_del);
 				f = KSW_MAX2(h_1-o_ins-e_ins, f-e_ins);
-				uint8_t a = target[i] < m ? target[i] : (uint8_t)(m - 1);
-				uint8_t b = query[j] < m ? query[j] : (uint8_t)(m - 1);
-				h = h11 + (int)S_mat[a*m + b];
+				h = h11 + (int)S_mat[target[i]*m + query[j]];
 				h = KSW_MAX2(0, h);
 				int tmp = KSW_MAX2(e,f);
 				h = KSW_MAX2(tmp, h);
