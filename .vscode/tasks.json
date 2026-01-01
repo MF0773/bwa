@@ -4,10 +4,9 @@
     {
       "label": "Make with debug",
       "type": "shell",
-      "dependsOn": "CUDA: Build (Debug, T4)",
       "command": "make",
       "args": [
-        "-j","4"
+        "-j","2","debug=1"
       ]
     },
     {
