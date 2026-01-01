@@ -1,6 +1,8 @@
 ## BWA-MEM ON GPU
 GPU implementation of [BWA-MEM](https://github.com/lh3/bwa).
 
+> Note: This is a fork for our university project.
+
 ## Requirements
 * CUDA >= 11.5
 * Any GPU with at least 12GB memory
