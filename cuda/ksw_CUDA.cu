@@ -5,6 +5,8 @@
 #error "KSW_MAX_QLEN must be >= SEQ_MAXLEN"
 #endif
 
+__device__ __constant__ int8_t d_ksw_mat[25];
+
 __device__ const kswr_t g_defr = { 0, -1, -1, -1, -1, -1, -1 };
 
 /**

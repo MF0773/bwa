@@ -15,6 +15,8 @@
 #endif
 #define KSW_ALL_THREADS 0xffffffff  // mask indicating all threads participate in shuffle instruction
 
+extern __device__ __constant__ int8_t d_ksw_mat[25];
+
 typedef	struct m128i {
 	// set of 8 16-bit integers
 	int16_t x0, x1, x2, x3, x4, x5, x6, x7;
@@ -68,8 +70,9 @@ static __device__ __forceinline__ int ksw_score(uint8_t A, uint8_t B, const int8
 static __device__ __forceinline__ int ksw_extend_warp(int qlen, const uint8_t *query, int tlen, const uint8_t *target, int m, const int8_t *mat, int o_del, int e_del, int o_ins, int e_ins, int h0, int *_qle, int *_tle, int *_gtle, int *_gscore)
 {
 	if (qlen>KSW_MAX_QLEN){printf("querry length is too long %d \n", qlen); __trap();}
+	(void)mat;
 	__shared__ int8_t S_mat[25];
-	if (threadIdx.x < 25) S_mat[threadIdx.x] = mat[threadIdx.x];
+	if (threadIdx.x < 25) S_mat[threadIdx.x] = d_ksw_mat[threadIdx.x];
 	__syncwarp(KSW_ALL_THREADS);
 	__shared__	int16_t SM_H[KSW_MAX_QLEN], SM_E[KSW_MAX_QLEN];
 	int e, f, h;
