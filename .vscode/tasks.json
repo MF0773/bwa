@@ -10,6 +10,14 @@
       ]
     },
     {
+      "label": "Make for release",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-j","2"
+      ]
+    },
+    {
       "label": "CUDA: Build (Debug, T4)",
       "type": "shell",
       "command": "nvcc",
