@@ -1,0 +1,67 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Make with debug",
+      "type": "shell",
+      "command": "make",
+      "args": [
+        "-j","2","debug=1"
+      ]
+    },
+    {
+      "label": "CUDA: Build (Debug, T4)",
+      "type": "shell",
+      "command": "nvcc",
+      "args": [
+        "-O0",
+        "-g",
+        "-G",
+        "-lineinfo",
+        "main.cu",
+        "-o",
+        "app",
+        "-gencode",
+        "arch=compute_75,code=sm_75"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+
+    {
+      "label": "CUDA: Standards Check (memcheck)",
+      "type": "shell",
+      "dependsOn": "CUDA: Build (Debug, T4)",
+      "command": "compute-sanitizer",
+      "args": [
+        "--tool",
+        "memcheck",
+        "./app"
+      ]
+    },
+
+    {
+      "label": "CUDA: Standards Check (racecheck)",
+      "type": "shell",
+      "dependsOn": "CUDA: Build (Debug, T4)",
+      "command": "compute-sanitizer",
+      "args": [
+        "--tool",
+        "racecheck",
+        "./app"
+      ]
+    },
+
+    {
+      "label": "CUDA: Standards Check (full)",
+      "dependsOn": [
+        "CUDA: Standards Check (memcheck)",
+        "CUDA: Standards Check (racecheck)"
+      ],
+      "dependsOrder": "sequence"
+    }
+  ]
+}
