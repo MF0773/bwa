@@ -20,6 +20,7 @@ using namespace std::chrono;
 using namespace std;
 extern ofstream perf_profile_file;
 
+/*** */
 __device__ __constant__ unsigned char d_nst_nt4_table[256] = {
 	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
 	4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4, 
