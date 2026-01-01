@@ -2611,9 +2611,6 @@ __global__ void SMITHWATERMAN_extend_kernel(
 	if (blockDim.x!=32) {printf("wrong blocksize config \n"); __trap();}
 	int i = blockIdx.x;	// seed index on d_seed_records
 	if (i>=d_Nseeds[0]) return;
-	__shared__ int8_t S_mat[25];
-	if (threadIdx.x < 25) S_mat[threadIdx.x] = d_opt->mat[threadIdx.x];
-	__syncthreads();
 	// pull seed info
 	int seqID = (int)d_seed_records[i].seqID;
 	int chainID = (int)d_seed_records[i].chainID;
@@ -2633,7 +2630,7 @@ __global__ void SMITHWATERMAN_extend_kernel(
 	uint8_t *target = d_seed_records[i].ref_left;
 	int tlen = (int)d_seed_records[i].reflen_left;
 	if (qlen>0){
-		score = ksw_extend_warp(qlen, query, tlen, target, 5, S_mat, d_opt->o_del, d_opt->e_del, d_opt->o_ins, d_opt->e_ins, h0, &qle, &tle, &gtle, &gscore);
+		score = ksw_extend_warp(qlen, query, tlen, target, 5, d_opt->mat, d_opt->o_del, d_opt->e_del, d_opt->o_ins, d_opt->e_ins, h0, &qle, &tle, &gtle, &gscore);
 		// check whether we prefer to reach the end of the query
 		if (gscore<=0 || gscore<=(score-d_opt->pen_clip5)){	// use local extension
 			query_end = d_chains[seqID].a[chainID].seeds[seedID].qbeg - qle;
@@ -2657,7 +2654,7 @@ __global__ void SMITHWATERMAN_extend_kernel(
 	target = d_seed_records[i].ref_right;
 	tlen = (int)d_seed_records[i].reflen_right;
 	if (qlen>0){
-		score = ksw_extend_warp(qlen, query, tlen, target, 5, S_mat, d_opt->o_del, d_opt->e_del, d_opt->o_ins, d_opt->e_ins, h0, &qle, &tle, &gtle, &gscore);
+		score = ksw_extend_warp(qlen, query, tlen, target, 5, d_opt->mat, d_opt->o_del, d_opt->e_del, d_opt->o_ins, d_opt->e_ins, h0, &qle, &tle, &gtle, &gscore);
 		// check whether we prefer to reach the end of the query
 		if (gscore<=0 || gscore<=(score-d_opt->pen_clip3)){	// use local extension
 			query_end = d_chains[seqID].a[chainID].seeds[seedID].qbeg + d_chains[seqID].a[chainID].seeds[seedID].len + qle;
