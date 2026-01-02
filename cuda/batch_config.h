@@ -14,7 +14,7 @@
 
 // super-batch config
 #define SB_MAX_COUNT 1000000                   // max number of reads
-#define SB_NAME_LIMIT (unsigned long)SB_MAX_COUNT * 400       // chunk size of name
+#define SB_NAME_LIMIT (unsigned long)SB_MAX_COUNT * 4000       // chunk size of name
 #define SB_COMMENT_LIMIT (unsigned long)SB_MAX_COUNT * 100    // chunk size of comment
 #define SB_SEQ_LIMIT (unsigned long)SB_MAX_COUNT *SEQ_MAXLEN  // chunk size of seq
 #define SB_QUAL_LIMIT (unsigned long)SB_MAX_COUNT *SEQ_MAXLEN // chunk size of qual
