@@ -17,7 +17,8 @@ INCLUDES=
 LIBS=		-lm -lz -lpthread
 SUBDIRS=	.
 CUDADIR=    ./cuda
-CUDA_ARCH = sm_75
+CUDA_ARCH ?= $(shell nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -n1 | tr -d '.' | sed 's/^/sm_/')
+CUDA_ARCH ?= sm_75
 NVCC_OPTIM_FLAGS= -Xptxas -O4 -Xcompiler -O4 --device-c -arch=$(CUDA_ARCH)
 NVCC_DEBUG_FLAGS= -g -G -O0 --device-c -arch=$(CUDA_ARCH)
 
@@ -73,7 +74,7 @@ kstring_CUDA.o: $(CUDADIR)/kstring_CUDA.cuh $(CUDADIR)/kstring_CUDA.cu
 bwamem_GPU.o: bwamem.h bwa.h bntseq.h $(CUDADIR)/bwamem_GPU.cuh kbtree.h $(CUDADIR)/bwamem_GPU.cu $(CUDADIR)/CUDAKernel_memmgnt.cuh $(CUDADIR)/bwt_CUDA.cuh $(CUDADIR)/bntseq_CUDA.cuh $(CUDADIR)/kbtree_CUDA.cuh $(CUDADIR)/ksw_CUDA.cuh $(CUDADIR)/bwa_CUDA.cuh $(CUDADIR)/bwa_CUDA.cuh
 	nvcc $(NVCC_FLAGS) $(CUDADIR)/bwamem_GPU.cu -o bwamem_GPU.o
 GPULink.o: bwamem_GPU.o CUDAKernel_memmgnt.o bwt_CUDA.o bntseq_CUDA.o kbtree_CUDA.o ksw_CUDA.o bwa_CUDA.o kstring_CUDA.o streams.o
-	nvcc -I. --device-link -arch=$(CUDA_ARCH) bwamem_GPU.o CUDAKernel_memmgnt.o bwt_CUDA.o bntseq_CUDA.o kbtree_CUDA.o ksw_CUDA.o bwa_CUDA.o kstring_CUDA.o streams.o --output-file GPULink.o
+	$(NVCC) -I. --device-link -arch=$(CUDA_ARCH) bwamem_GPU.o CUDAKernel_memmgnt.o bwt_CUDA.o bntseq_CUDA.o kbtree_CUDA.o ksw_CUDA.o bwa_CUDA.o kstring_CUDA.o streams.o --output-file GPULink.o
 minibatch_process.o: cuda/minibatch_process.cpp cuda/minibatch_process.h
 	nvcc -I. $(NVCC_FLAGS) -o minibatch_process.o cuda/minibatch_process.cpp
 superbatch_process.o: cuda/superbatch_process.cpp cuda/superbatch_process.h
