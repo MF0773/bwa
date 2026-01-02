@@ -76,7 +76,7 @@ static inline void kseq2bseq2(const kseq_t *ks, bseq1_t *s, superbatch_data_t *o
 
 	char* temp;
 	// copy name to host's memory
-	if (out->name_size+ks->name.l+1 > SB_NAME_LIMIT){ fprintf(stderr, "[W::%s] FATAL: Memory limit exceeded for seq name,out->name_size=%d,ks->name.l=%d,SB_NAME_LIMIT=%d  .\n", __func__,out->name_size,ks->name.l, SB_NAME_LIMIT); exit(1); }
+	if (out->name_size+ks->name.l+1 > SB_NAME_LIMIT){ fprintf(stderr, "[W::%s] FATAL: Memory limit exceeded for seq name.\n", __func__); exit(1); }
 	temp = &(out->name[out->name_size]);	// position on the big chunk on host
 	memcpy(temp, ks->name.s, ks->name.l); temp[ks->name.l] = '\0';
 	s->name = (char*)(out->name + out->name_size);

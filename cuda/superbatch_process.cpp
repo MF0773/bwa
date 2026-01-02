@@ -144,9 +144,7 @@ void superBatchMain(ktp_aux_t *aux)
         // async process current batch
         auto processAsync = std::async(std::launch::async, processSuperBatch, super_process, mini_transfer, mini_process); // does nothing if process_data->n_seqs is 0
         // async input next batch (process 0)
-        int chunk_size = aux->actual_chunk_size > 0 ? aux->actual_chunk_size : INT_MAX;
-        // honor -K / thread-scaled batch size so superbatch buffers don't overflow on long names
-        auto inputAsync = std::async(std::launch::async, loadInputSuperBatch, aux->ks, aux->ks2, chunk_size, aux->copy_comment, super_transfer);
+        auto inputAsync = std::async(std::launch::async, loadInputSuperBatch, aux->ks, aux->ks2, INT_MAX, aux->copy_comment, super_transfer);
 
         inputAsync.wait();
         processAsync.wait();
