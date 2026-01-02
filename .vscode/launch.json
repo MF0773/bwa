@@ -9,8 +9,8 @@
             "type": "cuda-gdb",
             "request": "launch",
             "program": "${workspaceFolder}/bwa",
-            "args": "mem Homo_sapiens_assembly38.fasta.gz large_1.fastq.gz large_2.fastq.gz",
-            "preLaunchTask": "CUDA: Build (Debug, T4)",
+            "args": ["mem","Homo_sapiens_assembly38.fasta.gz","large_1.fastq.gz","large_2.fastq.gz"],
+            "preLaunchTask": "Make with debug",
             "breakOnLaunch": false,
             "onAPIError": "stop",
             "cwd": "${workspaceFolder}"
