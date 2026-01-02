@@ -18,6 +18,10 @@ static superbatch_data_t *newSuperBatchData()
 {
     superbatch_data_t *batch = (superbatch_data_t *)malloc(sizeof(superbatch_data_t));
     batch->n_reads = 0;
+    batch->name_size = 0;
+    batch->comment_size = 0;
+    batch->seqs_size = 0;
+    batch->qual_size = 0;
     // init memory for reads in the batch
     batch->reads = (bseq1_t *)malloc(SB_MAX_COUNT * sizeof(bseq1_t));
     batch->name = (char *)malloc(SB_NAME_LIMIT);
