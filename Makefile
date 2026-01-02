@@ -29,7 +29,7 @@ else
 CUDA_ARCH := sm_75
 endif
 NVCC_OPTIM_FLAGS= -Xptxas -O4 -Xcompiler -O4 --device-c -arch=$(CUDA_ARCH)
-NVCC_DEBUG_FLAGS= -g -G -O0 --device-c -arch=$(CUDA_ARCH)
+NVCC_DEBUG_FLAGS= -g -G -O0 -lineinfo --device-c -arch=$(CUDA_ARCH)
 
 ifeq ($(shell uname -s),Linux)
 	LIBS += -lrt
