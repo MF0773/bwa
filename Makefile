@@ -20,8 +20,12 @@ INCLUDES=
 LIBS=		-lm -lz -lpthread
 SUBDIRS=	.
 CUDADIR=    ./cuda
-CUDA_ARCH := $(shell nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -n1 | tr -d '.' | sed 's/^/sm_/')
-ifeq ($(strip $(CUDA_ARCH)),)
+GPU_CC := $(shell nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -n1 | tr -d '.' )
+ifeq ($(GPU_CC),75)
+CUDA_ARCH := sm_75
+else ifeq ($(GPU_CC),80)
+CUDA_ARCH := sm_80
+else
 CUDA_ARCH := sm_75
 endif
 NVCC_OPTIM_FLAGS= -Xptxas -O4 -Xcompiler -O4 --device-c -arch=$(CUDA_ARCH)
