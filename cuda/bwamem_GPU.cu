@@ -1329,10 +1329,13 @@ __global__ void MEMFINDING_collect_intv_kernel(
 		}
 		return;
 	}
+	if (l_seq > SEQ_MAXLEN){
+		if (threadIdx.x==0) printf("sequence length too long %d\n", l_seq);
+		__trap();
+	}
 
 	// cache read in shared mem
-	extern __shared__ int SM[];
-	uint8_t *S_seq = (uint8_t*)SM;
+	__shared__ uint8_t S_seq[SEQ_MAXLEN];
 	#pragma unroll
 	for (j=threadIdx.x; j<l_seq; j+=blockDim.x)
 		S_seq[j] = (uint8_t)seq1[j];
@@ -3488,7 +3491,7 @@ void mem_align_GPU(process_data_t *process_data)
 
 	/* ----------------------- First part of pipeline: find SMEM intervals --------------------------------------*/
 	if (bwa_verbose>=4) fprintf(stderr, "[M::%-25s] **** [MEM FINDING]: collect MEM intervals ...\n", __func__);
-	MEMFINDING_collect_intv_kernel <<< n_seqs, 320, 512, process_stream >>> (
+	MEMFINDING_collect_intv_kernel <<< n_seqs, 320, 0, process_stream >>> (
 			d_opt, d_bwt, d_seqs,
 			d_aux,	// output
 			d_kmerHashTab,
