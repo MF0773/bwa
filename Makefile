@@ -1,6 +1,9 @@
 MAKEFLAGS += -j64
 CC=			gcc
 CPPCC=		g++
+NVCC ?= nvcc
+NVCC_PATH := $(shell command -v $(NVCC) 2>/dev/null)
+CUDA_HOME ?= $(if $(NVCC_PATH),$(abspath $(dir $(NVCC_PATH))/..),/usr/local/cuda)
 #CC=			clang --analyze
 CFLAGS=		-g -Wall -Wno-unused-function -O2
 WRAP_MALLOC=-DUSE_MALLOC_WRAPPERS
@@ -17,8 +20,10 @@ INCLUDES=
 LIBS=		-lm -lz -lpthread
 SUBDIRS=	.
 CUDADIR=    ./cuda
-CUDA_ARCH ?= $(shell nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -n1 | tr -d '.' | sed 's/^/sm_/')
-CUDA_ARCH ?= sm_75
+CUDA_ARCH := $(shell nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -n1 | tr -d '.' | sed 's/^/sm_/')
+ifeq ($(strip $(CUDA_ARCH)),)
+CUDA_ARCH := sm_75
+endif
 NVCC_OPTIM_FLAGS= -Xptxas -O4 -Xcompiler -O4 --device-c -arch=$(CUDA_ARCH)
 NVCC_DEBUG_FLAGS= -g -G -O0 --device-c -arch=$(CUDA_ARCH)
 
@@ -56,29 +61,29 @@ depend:
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 CUDAKernel_memmgnt.o: $(CUDADIR)/CUDAKernel_memmgnt.cu $(CUDADIR)/CUDAKernel_memmgnt.cuh
-	nvcc -I. $(NVCC_FLAGS) $(CUDADIR)/CUDAKernel_memmgnt.cu -o CUDAKernel_memmgnt.o
+	$(NVCC) -I. $(NVCC_FLAGS) $(CUDADIR)/CUDAKernel_memmgnt.cu -o CUDAKernel_memmgnt.o
 streams.o: $(CUDADIR)/streams.cu $(CUDADIR)/streams.cuh
-	nvcc -I. $(NVCC_FLAGS) $(CUDADIR)/streams.cu -o streams.o
+	$(NVCC) -I. $(NVCC_FLAGS) $(CUDADIR)/streams.cu -o streams.o
 bwt_CUDA.o: $(CUDADIR)/bwt_CUDA.cu $(CUDADIR)/bwt_CUDA.cuh
-	nvcc -I. $(NVCC_FLAGS) $(CUDADIR)/bwt_CUDA.cu -o bwt_CUDA.o
+	$(NVCC) -I. $(NVCC_FLAGS) $(CUDADIR)/bwt_CUDA.cu -o bwt_CUDA.o
 bntseq_CUDA.o: $(CUDADIR)/bntseq_CUDA.cuh $(CUDADIR)/bntseq_CUDA.cu
-	nvcc -I. $(NVCC_FLAGS) $(CUDADIR)/bntseq_CUDA.cu -o bntseq_CUDA.o
+	$(NVCC) -I. $(NVCC_FLAGS) $(CUDADIR)/bntseq_CUDA.cu -o bntseq_CUDA.o
 kbtree_CUDA.o: $(CUDADIR)/kbtree_CUDA.cuh $(CUDADIR)/kbtree_CUDA.cu
-	nvcc -I. $(NVCC_FLAGS) $(CUDADIR)/kbtree_CUDA.cu -o kbtree_CUDA.o
+	$(NVCC) -I. $(NVCC_FLAGS) $(CUDADIR)/kbtree_CUDA.cu -o kbtree_CUDA.o
 ksw_CUDA.o: $(CUDADIR)/ksw_CUDA.cuh $(CUDADIR)/ksw_CUDA.cu
-	nvcc -I. $(NVCC_FLAGS) $(CUDADIR)/ksw_CUDA.cu -o ksw_CUDA.o
+	$(NVCC) -I. $(NVCC_FLAGS) $(CUDADIR)/ksw_CUDA.cu -o ksw_CUDA.o
 bwa_CUDA.o: $(CUDADIR)/bwa_CUDA.cuh $(CUDADIR)/bwa_CUDA.cu
-	nvcc -I. $(NVCC_FLAGS) $(CUDADIR)/bwa_CUDA.cu -o bwa_CUDA.o
+	$(NVCC) -I. $(NVCC_FLAGS) $(CUDADIR)/bwa_CUDA.cu -o bwa_CUDA.o
 kstring_CUDA.o: $(CUDADIR)/kstring_CUDA.cuh $(CUDADIR)/kstring_CUDA.cu
-	nvcc -I. $(NVCC_FLAGS) $(CUDADIR)/kstring_CUDA.cu -o kstring_CUDA.o
+	$(NVCC) -I. $(NVCC_FLAGS) $(CUDADIR)/kstring_CUDA.cu -o kstring_CUDA.o
 bwamem_GPU.o: bwamem.h bwa.h bntseq.h $(CUDADIR)/bwamem_GPU.cuh kbtree.h $(CUDADIR)/bwamem_GPU.cu $(CUDADIR)/CUDAKernel_memmgnt.cuh $(CUDADIR)/bwt_CUDA.cuh $(CUDADIR)/bntseq_CUDA.cuh $(CUDADIR)/kbtree_CUDA.cuh $(CUDADIR)/ksw_CUDA.cuh $(CUDADIR)/bwa_CUDA.cuh $(CUDADIR)/bwa_CUDA.cuh
-	nvcc $(NVCC_FLAGS) $(CUDADIR)/bwamem_GPU.cu -o bwamem_GPU.o
+	$(NVCC) $(NVCC_FLAGS) $(CUDADIR)/bwamem_GPU.cu -o bwamem_GPU.o
 GPULink.o: bwamem_GPU.o CUDAKernel_memmgnt.o bwt_CUDA.o bntseq_CUDA.o kbtree_CUDA.o ksw_CUDA.o bwa_CUDA.o kstring_CUDA.o streams.o
 	$(NVCC) -I. --device-link -arch=$(CUDA_ARCH) bwamem_GPU.o CUDAKernel_memmgnt.o bwt_CUDA.o bntseq_CUDA.o kbtree_CUDA.o ksw_CUDA.o bwa_CUDA.o kstring_CUDA.o streams.o --output-file GPULink.o
 minibatch_process.o: cuda/minibatch_process.cpp cuda/minibatch_process.h
-	nvcc -I. $(NVCC_FLAGS) -o minibatch_process.o cuda/minibatch_process.cpp
+	$(NVCC) -I. $(NVCC_FLAGS) -o minibatch_process.o cuda/minibatch_process.cpp
 superbatch_process.o: cuda/superbatch_process.cpp cuda/superbatch_process.h
-	nvcc -I. $(NVCC_FLAGS) -o superbatch_process.o cuda/superbatch_process.cpp
+	$(NVCC) -I. $(NVCC_FLAGS) -o superbatch_process.o cuda/superbatch_process.cpp
 loadKMerIndex.o: kmers_index/loadKMerIndex.cpp kmers_index/hashKMerIndex.h
 	g++ kmers_index/loadKMerIndex.cpp -c -o loadKMerIndex.o
 
