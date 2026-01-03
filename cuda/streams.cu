@@ -3,6 +3,7 @@
 #include "CUDAKernel_memmgnt.cuh"
 #include "batch_config.h"
 
+extern __device__ __constant__ int8_t d_scmat[25];
 
 /* transfer index data */
 static void transferIndex(
@@ -113,6 +114,7 @@ static void transferOptions(
 	mem_opt_t* d_opt;
 	cudaMalloc((void**)&d_opt, sizeof(mem_opt_t));
 	cudaMemcpy(d_opt, opt, sizeof(mem_opt_t), cudaMemcpyHostToDevice);
+	cudaMemcpyToSymbol(d_scmat, opt->mat, sizeof(opt->mat));
 
 	// paired-end stats: only allocate on device
 	mem_pestat_t* d_pes;

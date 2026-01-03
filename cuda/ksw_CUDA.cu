@@ -1,6 +1,7 @@
 #include "ksw_CUDA.cuh"
 #include "CUDAKernel_memmgnt.cuh"
 
+__device__ __constant__ int8_t d_scmat[25];
 __device__ const kswr_t g_defr = { 0, -1, -1, -1, -1, -1, -1 };
 
 /**
@@ -401,7 +402,8 @@ __device__ int ksw_extend2(int qlen, const uint8_t *query, int tlen, const uint8
 
 /* scoring of 2 characters given scoring matrix mat, and dimension m*/
 __device__ static inline int score(uint8_t A, uint8_t B, const int8_t *mat, int m){
-	return (int)mat[A*m+B];
+	if (m == 5) return (int)d_scmat[A * 5 + B];
+	return (int)mat[A * m + B];
 }
 /* SW extension executing at warp level
 	BLOCKSIZE = WARPSIZE = 32
@@ -427,7 +429,6 @@ __device__ int ksw_extend_warp(int qlen, const uint8_t *query, int tlen, const u
 {
 	if (qlen>KSW_MAX_QLEN){printf("querry length is too long %d \n", qlen); __trap();}
 	__shared__	int16_t SM_H[KSW_MAX_QLEN], SM_E[KSW_MAX_QLEN];
-	__shared__ int8_t SM_QP[KSW_MAX_QLEN * 5];
 	int e, f, h;
 	int e1_;
 	int h1_, h_1, h11;
@@ -435,14 +436,6 @@ __device__ int ksw_extend_warp(int qlen, const uint8_t *query, int tlen, const u
 	int i_m=-1, j_m=-1;	// position of best score
 	int max_gscore = 0; // score of end-to-end alignment
 	int i_gscore;	// position of best end-to-end alignment score
-
-	// build query profile in shared memory (assumes DNA alphabet size <= 5)
-	for (int k = 0; k < m && k < 5; ++k) {
-		const int8_t *p = &mat[k * m];
-		for (int j = threadIdx.x; j < qlen; j += WARPSIZE)
-			SM_QP[k * KSW_MAX_QLEN + j] = p[query[j]];
-	}
-	__syncwarp();
 
 	// first row scoring
 	for (int j=threadIdx.x; j<qlen; j+=WARPSIZE){	// j is col index
@@ -467,10 +460,9 @@ __device__ int ksw_extend_warp(int qlen, const uint8_t *query, int tlen, const u
 		if (j==0) h_1 = h0 - o_ins - (i+1)*e_ins;		// first column score
 		// calculate E[i,j], F[i,j], and H[i,j]
 		if (i<tlen && j<qlen && j>=0){ 		// safety check for small matrix
-			int8_t *q = &SM_QP[target[i] * KSW_MAX_QLEN];
 			e = max2(h1_-o_del-e_del, e1_-e_del);
 			f = max2(h_1-o_ins-e_ins, f-e_ins);
-			h = h11 + q[j];
+			h = h11 + score(target[i], query[j], mat, m);
 			h = max2(0, h);
 			int tmp = max2(e,f);
 			h = max2(tmp, h);
@@ -511,10 +503,9 @@ __device__ int ksw_extend_warp(int qlen, const uint8_t *query, int tlen, const u
 			if (j==0) h_1 = h0 - o_ins - (i+1)*e_ins;	// first column score
 			// calculate E[i,j], F[i,j], and H[i,j]
 			if (i<tlen && j<qlen){ // j should be >=0
-				int8_t *q = &SM_QP[target[i] * KSW_MAX_QLEN];
 				e = max2(h1_-o_del-e_del, e1_-e_del);
 				f = max2(h_1-o_ins-e_ins, f-e_ins);
-				h = h11 + q[j];
+				h = h11 + score(target[i], query[j], mat, m);
 				h = max2(0, h);
 				int tmp = max2(e,f);
 				h = max2(tmp, h);
