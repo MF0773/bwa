@@ -624,7 +624,7 @@ __device__ int ksw_global_warp(int qlen, const uint8_t *query, int tlen, const u
 	}
 
 	// fill the rest of the matrix where we have enough parallelism
-	int Ntile = ceil(float(tlen/WARPSIZE));
+	int Ntile = (tlen + WARPSIZE - 1) / WARPSIZE;
 	int qlen_padded = qlen>=32? qlen : 32;	// pad qlen so that we have correct overflow for small matrix
 	for (int tile_ID=0; tile_ID<Ntile; tile_ID++){	// tile loop
 		int i, j;
