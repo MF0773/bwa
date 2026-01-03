@@ -2,7 +2,6 @@
 #include "errHandler.cuh"
 #include "CUDAKernel_memmgnt.cuh"
 #include "batch_config.h"
-#include "ksw_CUDA.cuh"
 
 
 /* transfer index data */
@@ -114,10 +113,6 @@ static void transferOptions(
 	mem_opt_t* d_opt;
 	cudaMalloc((void**)&d_opt, sizeof(mem_opt_t));
 	cudaMemcpy(d_opt, opt, sizeof(mem_opt_t), cudaMemcpyHostToDevice);
-	cudaError_t mat_err = ksw_set_score_matrix_constant(opt->mat, 5);
-	if (mat_err != cudaSuccess && bwa_verbose >= 1) {
-		fprintf(stderr, "[M::%-25s] score matrix constant copy failed, using global pointer (err=%s)\n", __func__, cudaGetErrorString(mat_err));
-	}
 
 	// paired-end stats: only allocate on device
 	mem_pestat_t* d_pes;

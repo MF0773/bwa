@@ -1,5 +1,4 @@
 #include "stdint.h"
-#include <cuda_runtime.h>
 
 #define KSW_XBYTE  0x10000
 #define KSW_XSTOP  0x20000
@@ -7,8 +6,6 @@
 #define KSW_XSTART 0x80000
 #define KSW_MAX_QLEN 500
 #define WARPSIZE 32
-#define KSW_SCORE_MAT_MAX_DIM 64
-#define KSW_SCORE_MAT_CONST_CAP (KSW_SCORE_MAT_MAX_DIM * KSW_SCORE_MAT_MAX_DIM)
 
 typedef	struct m128i {
 	// set of 8 16-bit integers
@@ -39,4 +36,3 @@ __device__ int ksw_global_warp(int qlen, const uint8_t *query, int tlen, const u
 
 __device__ int ksw_global2(int qlen, const uint8_t *query, int tlen, const uint8_t *target, int m, const int8_t *mat, int o_del, int e_del, int o_ins, int e_ins, int w, int *n_cigar_, uint32_t **cigar_, void* d_buffer_ptr);
 
-__host__ cudaError_t ksw_set_score_matrix_constant(const int8_t *h_mat, int m);

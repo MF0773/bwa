@@ -1,24 +1,7 @@
 #include "ksw_CUDA.cuh"
 #include "CUDAKernel_memmgnt.cuh"
-#include <assert.h>
-#include <cuda_runtime.h>
 
 __device__ const kswr_t g_defr = { 0, -1, -1, -1, -1, -1, -1 };
-
-__device__ __constant__ int8_t d_score_mat_const[KSW_SCORE_MAT_CONST_CAP];
-__device__ __constant__ int d_score_mat_dim = 0;
-
-__host__ cudaError_t ksw_set_score_matrix_constant(const int8_t *h_mat, int m)
-{
-	int zero = 0;
-	cudaError_t err = cudaMemcpyToSymbol(d_score_mat_dim, &zero, sizeof(int));
-	if (err != cudaSuccess) return err;
-	if (m <= 0 || m > KSW_SCORE_MAT_MAX_DIM) return cudaSuccess; // fallback to global pointer path
-	size_t bytes = (size_t)m * (size_t)m * sizeof(int8_t);
-	err = cudaMemcpyToSymbol(d_score_mat_const, h_mat, bytes);
-	if (err != cudaSuccess) return err;
-	return cudaMemcpyToSymbol(d_score_mat_dim, &m, sizeof(int));
-}
 
 /**
  * Initialize the query data structure
@@ -418,15 +401,6 @@ __device__ int ksw_extend2(int qlen, const uint8_t *query, int tlen, const uint8
 
 /* scoring of 2 characters given scoring matrix mat, and dimension m*/
 __device__ static inline int score(uint8_t A, uint8_t B, const int8_t *mat, int m){
-	bool in_bounds = (A < m) && (B < m);
-#ifndef NDEBUG
-	assert(in_bounds && "score index out of bounds");
-#else
-	if (!in_bounds) return 0;
-#endif
-	if (m <= KSW_SCORE_MAT_MAX_DIM && d_score_mat_dim == m){
-		return (int)d_score_mat_const[A * m + B];
-	}
 	return (int)mat[A*m+B];
 }
 /* SW extension executing at warp level
