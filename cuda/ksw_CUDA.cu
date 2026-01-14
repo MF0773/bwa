@@ -1,6 +1,7 @@
 #include "ksw_CUDA.cuh"
 #include "CUDAKernel_memmgnt.cuh"
 
+__device__ __constant__ int8_t d_scmat[25];
 __device__ const kswr_t g_defr = { 0, -1, -1, -1, -1, -1, -1 };
 
 /**
@@ -401,7 +402,8 @@ __device__ int ksw_extend2(int qlen, const uint8_t *query, int tlen, const uint8
 
 /* scoring of 2 characters given scoring matrix mat, and dimension m*/
 __device__ static inline int score(uint8_t A, uint8_t B, const int8_t *mat, int m){
-	return (int)mat[A*m+B];
+	if (m == 5) return (int)d_scmat[A * 5 + B];
+	return (int)__ldg(mat + A * m + B);
 }
 /* SW extension executing at warp level
 	BLOCKSIZE = WARPSIZE = 32
@@ -458,9 +460,11 @@ __device__ int ksw_extend_warp(int qlen, const uint8_t *query, int tlen, const u
 		if (j==0) h_1 = h0 - o_ins - (i+1)*e_ins;		// first column score
 		// calculate E[i,j], F[i,j], and H[i,j]
 		if (i<tlen && j<qlen && j>=0){ 		// safety check for small matrix
+			uint8_t a = __ldg(target + i);
+			uint8_t b = __ldg(query + j);
 			e = max2(h1_-o_del-e_del, e1_-e_del);
 			f = max2(h_1-o_ins-e_ins, f-e_ins);
-			h = h11 + score(target[i], query[j], mat, m);
+			h = h11 + score(a, b, mat, m);
 			h = max2(0, h);
 			int tmp = max2(e,f);
 			h = max2(tmp, h);
@@ -501,9 +505,11 @@ __device__ int ksw_extend_warp(int qlen, const uint8_t *query, int tlen, const u
 			if (j==0) h_1 = h0 - o_ins - (i+1)*e_ins;	// first column score
 			// calculate E[i,j], F[i,j], and H[i,j]
 			if (i<tlen && j<qlen){ // j should be >=0
+				uint8_t a = __ldg(target + i);
+				uint8_t b = __ldg(query + j);
 				e = max2(h1_-o_del-e_del, e1_-e_del);
 				f = max2(h_1-o_ins-e_ins, f-e_ins);
-				h = h11 + score(target[i], query[j], mat, m);
+				h = h11 + score(a, b, mat, m);
 				h = max2(0, h);
 				int tmp = max2(e,f);
 				h = max2(tmp, h);
@@ -590,6 +596,8 @@ __device__ int ksw_global_warp(int qlen, const uint8_t *query, int tlen, const u
 		int j = anti_diag - threadIdx.x;	// col index on the matrix
 		__syncwarp();
 		if (i<tlen && j<qlen && j>=0){ 		// safety check for small matrix
+			uint8_t a = __ldg(target + i);
+			uint8_t b = __ldg(query + j);
 			unsigned mask = __activemask();
 			// get previous cell data
 			e1_ = __shfl_up_sync(mask, e, 1); // get e from threadIdx-1, which is E[i-1,j]
@@ -604,7 +612,7 @@ __device__ int ksw_global_warp(int qlen, const uint8_t *query, int tlen, const u
 			// calculate E[i,j], F[i,j], and H[i,j]
 			e = max2(h1_-o_del-e_del, e1_-e_del);
 			f = max2(h_1-o_ins-e_ins, f-e_ins);
-			h = h11 + score(target[i], query[j], mat, m);
+			h = h11 + score(a, b, mat, m);
 			// record traceback
 			if (h>=e && h>=f){	// traceback = 0 (match)
 				// h = h
@@ -637,6 +645,8 @@ __device__ int ksw_global_warp(int qlen, const uint8_t *query, int tlen, const u
 			}
 			__syncwarp();
 			if (i<tlen && j<qlen){ // j should be >=0
+				uint8_t a = __ldg(target + i);
+				uint8_t b = __ldg(query + j);
 				// get previous cell data
 				if (j==0) f = 0; 	// if we are processing first col, F[i,j-1] = 0. Otherwise, F[i,j-1] = f
 				unsigned mask = __activemask();
@@ -652,7 +662,7 @@ __device__ int ksw_global_warp(int qlen, const uint8_t *query, int tlen, const u
 				// calculate E[i,j], F[i,j], and H[i,j]
 				e = max2(h1_-o_del-e_del, e1_-e_del);
 				f = max2(h_1-o_ins-e_ins, f-e_ins);
-				h = h11 + score(target[i], query[j], mat, m);
+				h = h11 + score(a, b, mat, m);
 				// record traceback
 				if (h>=e && h>=f){	// traceback = 0 (match)
 					// h = h

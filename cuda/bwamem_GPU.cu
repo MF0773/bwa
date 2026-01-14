@@ -2033,6 +2033,7 @@ __global__ void SEEDCHAINING_chain_kernel(
 	mem_chain_t *chain_a = S_chain_a[0];
 	for (int i=threadIdx.x; i<n_seeds&&i<SORTSEEDSHIGH_MAX_NSEEDS; i+=blockDim.x){	// i = seedID
 		if (S_preceding_seed[i] == i){	// seed i is head of chain
+			if (seed_a[i].rid < 0 || seed_a[i].rid >= d_bns->n_seqs) continue;
 			// start a new chain
 			int chainID = atomicAdd(&S_n_chains[0], 1);
 			chain_a[chainID].pos = seed_a[i].rbeg;
